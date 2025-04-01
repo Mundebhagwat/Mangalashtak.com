@@ -59,7 +59,7 @@ const Dashboard = () => {
         }
         const fetchUserProfile = async () => {
             try {
-                const res = await axios.get("http://localhost:5000/api/auth/me", {
+                const res = await axios.get("https://backend-for-mangalastak.onrender.com/api/auth/me", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(res.data);
@@ -78,7 +78,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("authToken");
     const fetchShortlistedProfiles = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/users/shortlisted-profiles", {
+            const response = await axios.get("https://backend-for-mangalastak.onrender.com/api/users/shortlisted-profiles", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setShortlistedProfiles(response.data.profiles);
@@ -99,7 +99,7 @@ const Dashboard = () => {
     const handleSave = async () => {
         const token = localStorage.getItem("authToken");
         try {
-            const { data } = await axios.put("http://localhost:5000/api/auth/update", updatedData, {
+            const { data } = await axios.put("https://backend-for-mangalastak.onrender.com/api/auth/update", updatedData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUser(data);
@@ -114,7 +114,7 @@ const Dashboard = () => {
         const token = localStorage.getItem("authToken");
         if (window.confirm("Are you sure you want to delete your account?")) {
             try {
-                await axios.delete("http://localhost:5000/api/auth/delete", {
+                await axios.delete("https://backend-for-mangalastak.onrender.com/api/auth/delete", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 toast.success("Account deleted successfully");

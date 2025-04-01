@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         try {
-            const { data } = await axios.get("http://localhost:5000/api/auth/me", {
+            const { data } = await axios.get("https://backend-for-mangalastak.onrender.com/api/auth/me", {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setUser(data);

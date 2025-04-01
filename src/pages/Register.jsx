@@ -80,7 +80,7 @@ const Register = () => {
         const uploadedUrl = await uploadImage(profilePreview);
         profilePictureUrl = uploadedUrl;
       }
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await axios.post("https://backend-for-mangalastak.onrender.com/api/auth/register", {
         ...formData,
         profilePicture: profilePictureUrl,
       });

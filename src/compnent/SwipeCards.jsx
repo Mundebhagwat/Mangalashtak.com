@@ -13,7 +13,7 @@ const SendRequestPage = () => {
         const fetchProfiles = async () => {
             try {
                 const token = localStorage.getItem("authToken");
-                const response = await axios.get("http://localhost:5000/api/users/potential-matches", {
+                const response = await axios.get("https://backend-for-mangalastak.onrender.com/api/users/potential-matches", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setProfiles(response.data);
@@ -25,7 +25,7 @@ const SendRequestPage = () => {
         const fetchSentRequests = async () => {
             try {
                 const token = localStorage.getItem("authToken");
-                const response = await axios.get("http://localhost:5000/api/users/sent-requests", {
+                const response = await axios.get("https://backend-for-mangalastak.onrender.com/api/users/sent-requests", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -45,7 +45,7 @@ const SendRequestPage = () => {
         try {
             const token = localStorage.getItem("authToken");
             await axios.post(
-                `http://localhost:5000/api/users/send-request/${profileId}`,
+                `https://backend-for-mangalastak.onrender.com/api/users/send-request/${profileId}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -63,7 +63,7 @@ const SendRequestPage = () => {
         try {
             const token = localStorage.getItem("authToken");
             await axios.post(
-                `http://localhost:5000/api/users/cancel-request/${profileId}`,
+                `https://backend-for-mangalastak.onrender.com/api/users/cancel-request/${profileId}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

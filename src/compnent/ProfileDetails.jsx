@@ -17,7 +17,7 @@ const ProfileDetail = () => {
         const fetchProfile = async () => {
             try {
                 const token = localStorage.getItem("authToken");
-                const response = await axios.get(`http://localhost:5000/api/users/${userId}`, {
+                const response = await axios.get(`https://backend-for-mangalastak.onrender.com/api/users/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 console.log("Fetched Profile:", response.data);

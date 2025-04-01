@@ -30,7 +30,7 @@ const PartnerPreferencesForm = ({ userId, existingPreferences }) => {
         Object.entries(preferences).filter(([_, value]) => value !== "")
     );
     try {
-         const response = await axios.put(`http://localhost:5000/api/users//preferences/${userId}`, updatedPreferences, {
+         const response = await axios.put(`https://backend-for-mangalastak.onrender.com/api/users//preferences/${userId}`, updatedPreferences, {
         headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
       });
       toast.success("Preferences updated successfully!");

@@ -14,7 +14,7 @@ const Login = () => {
         localStorage.removeItem("authToken");
         localStorage.removeItem("authTokenExpiry");
         try {
-            const { data } = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+            const { data } = await axios.post("https://backend-for-mangalastak.onrender.com/api/auth/login", { email, password });
             if (data.token) {
                 const expirationTime = Date.now() + 3 * 60 * 60 * 1000; // Set expiry to 3 hours from now
 

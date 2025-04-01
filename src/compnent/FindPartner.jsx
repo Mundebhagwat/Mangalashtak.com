@@ -32,7 +32,7 @@ const FindPartner = () => {
   const handleSearch = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await axios.get("http://localhost:5000/api/match/matches", {
+      const response = await axios.get("https://backend-for-mangalastak.onrender.com/api/match/matches", {
         params: preferences,
         headers: { Authorization: `Bearer ${token}` },
       });
