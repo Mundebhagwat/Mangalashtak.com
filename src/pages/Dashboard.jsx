@@ -129,7 +129,7 @@ const Dashboard = () => {
     const handleLogout = () => {
         localStorage.removeItem("authToken");
         toast.success("Logged out successfully");
-        navigate("/login");
+        navigate("/");
     };
 
     if (loading) {

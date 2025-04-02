@@ -20,26 +20,61 @@ const ChatWindow = ({ otherUserId, otherUserName, onClose }) => {
     //     currentUser: currentUser?._id
     // });
 
-    // Initialize chat when component mounts
-    useEffect(() => {
-        const initChat = async () => {
-            // console.log("Initializing chat with:", otherUserId, otherUserName);
-            if (otherUserId && currentUser) {
-                try {
-                    setIsInitializing(true);
-                    const createdChatId = await createChat(otherUserId, otherUserName);
-                    // console.log("Chat created/found with ID:", createdChatId);
-                    setChatId(createdChatId);
-                } catch (error) {
-                    console.error("Error initializing chat:", error);
-                } finally {
-                    setIsInitializing(false);
-                }
-            }
-        };
+    // // Initialize chat when component mounts
+    // useEffect(() => {
+    //     const initChat = async () => {
+    //         // console.log("Initializing chat with:", otherUserId, otherUserName);
+    //         if (otherUserId && currentUser) {
+    //             try {
+    //                 setIsInitializing(true);
+    //                 const createdChatId = await createChat(otherUserId, otherUserName);
+    //                 // console.log("Chat created/found with ID:", createdChatId);
+    //                 setChatId(createdChatId);
+    //             } catch (error) {
+    //                 console.error("Error initializing chat:", error);
+    //             } finally {
+    //                 setIsInitializing(false);
+    //             }
+    //         }
+    //     };
 
+    //     initChat();
+    // }, [otherUserId, otherUserName, currentUser, createChat]); // Fixed dependency array
+
+
+    // Initialize chat when component mounts
+useEffect(() => {
+    const initChat = async () => {
+        if (!otherUserId || !currentUser) {
+            console.warn("Chat cannot be initialized yet. Waiting for required data...");
+            return;
+        }
+
+        try {
+            setIsInitializing(true);
+            const createdChatId = await createChat(otherUserId, otherUserName);
+
+            if (!createdChatId) {
+                console.error("Failed to create or fetch chat. No chat ID returned.");
+                return;
+            }
+
+            setChatId(createdChatId);
+        } catch (error) {
+            console.error("Error initializing chat:", error);
+        } finally {
+            setIsInitializing(false);
+        }
+    };
+
+    // Run only when both `otherUserId` and `currentUser` are available
+    if (otherUserId && currentUser) {
         initChat();
-    }, [otherUserId, otherUserName, currentUser, createChat]); // Fixed dependency array
+    }
+}, [otherUserId, otherUserName, currentUser, createChat]); // Fixed dependency array
+
+
+
 
     // Scroll to bottom when messages change
     useEffect(() => {
