@@ -166,35 +166,80 @@ const ChatWindow = ({ otherUserId, otherUserName, onClose }) => {
     const [chatId, setChatId] = useState(null);
     const messagesEndRef = useRef(null);
 
-    // Initialize chat when component mounts
-    useEffect(() => {
-        const initChat = async () => {
-            if (otherUserId && currentUser) {
-                try {
-                    setIsInitializing(true);
-                    const result = await createChat(otherUserId, otherUserName);
+    // // Initialize chat when component mounts
+    // useEffect(() => {
+    //     const initChat = async () => {
+    //         if (otherUserId && currentUser) {
+    //             try {
+    //                 setIsInitializing(true);
+    //                 const result = await createChat(otherUserId, otherUserName);
                     
-                    if (result.success) {
-                        setChatId(result.chatId);
-                        // Wait a bit to ensure all state updates have propagated
-                        setTimeout(() => {
-                            setIsInitializing(false);
-                        }, 500);
-                    } else {
-                        console.error("Failed to create chat:", result.error);
+    //                 if (result.success) {
+    //                     setChatId(result.chatId);
+    //                     // Wait a bit to ensure all state updates have propagated
+    //                     setTimeout(() => {
+    //                         setIsInitializing(false);
+    //                     }, 500);
+    //                 } else {
+    //                     console.error("Failed to create chat:", result.error);
+    //                     setIsInitializing(false);
+    //                 }
+    //             } catch (error) {
+    //                 console.error("Error initializing chat:", error);
+    //                 setIsInitializing(false);
+    //             }
+    //         } else {
+    //             setIsInitializing(false);
+    //         }
+    //     };
+
+    //     initChat();
+    // }, [otherUserId, otherUserName, currentUser, createChat]);
+    
+
+    // In ChatWindow.jsx, modify the initialization useEffect:
+
+// First, add a ref to track if initialization has been done
+const initDoneRef = useRef(false);
+
+useEffect(() => {
+    const initChat = async () => {
+        // Only run initialization if it hasn't been done already
+        if (!initDoneRef.current && otherUserId && currentUser) {
+            try {
+                setIsInitializing(true);
+                const result = await createChat(otherUserId, otherUserName);
+                
+                if (result.success) {
+                    setChatId(result.chatId);
+                    // Short timeout to ensure state updates
+                    setTimeout(() => {
                         setIsInitializing(false);
-                    }
-                } catch (error) {
-                    console.error("Error initializing chat:", error);
+                        // Mark initialization as done
+                        initDoneRef.current = true;
+                    }, 500);
+                } else {
+                    console.error("Failed to create chat:", result.error);
                     setIsInitializing(false);
                 }
-            } else {
+            } catch (error) {
+                console.error("Error initializing chat:", error);
                 setIsInitializing(false);
             }
-        };
+        } else if (initDoneRef.current) {
+            // If already initialized, just make sure we're not in loading state
+            setIsInitializing(false);
+        }
+    };
 
-        initChat();
-    }, [otherUserId, otherUserName, currentUser, createChat]);
+    initChat();
+    
+    // Return cleanup function to reset the ref when component unmounts
+    return () => {
+        initDoneRef.current = false;
+    };
+}, [otherUserId, otherUserName, currentUser]); // Remove createChat from dependencies
+
 
     // Scroll to bottom when messages change
     useEffect(() => {
