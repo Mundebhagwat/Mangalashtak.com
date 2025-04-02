@@ -7,10 +7,26 @@ import ChatWindow from '../compnent/ChatWindow'; // Update the path as needed
 const ProfileChatButton = ({ userId, userName, buttonProps }) => {
   const [showChat, setShowChat] = useState(false);
   const { createChat } = useChat();
+  const [isChatInitialized, setIsChatInitialized] = useState(false);
   
   const handleStartChat = async () => {
-    await createChat(userId, userName);
-    setShowChat(true);
+    // await createChat(userId, userName);
+    // setShowChat(true);
+
+     if (!userId || !userName) {
+      console.warn("Chat cannot be initialized: Missing userId or userName");
+      return;
+    }
+
+    setIsChatInitialized(true); // Mark chat as initializing
+    try {
+      await createChat(userId, userName);
+      setShowChat(true);
+    } catch (error) {
+      console.error("Failed to initialize chat:", error);
+    } finally {
+      setIsChatInitialized(false);
+    }
   };
 
   return (
@@ -19,7 +35,7 @@ const ProfileChatButton = ({ userId, userName, buttonProps }) => {
         onClick={handleStartChat}
         {...buttonProps}
       >
-        Message
+       {isChatInitialized ? "Initializing..." : "Message"}
       </Button>
       
       <Dialog 

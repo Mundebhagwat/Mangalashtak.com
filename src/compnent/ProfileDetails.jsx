@@ -5,7 +5,7 @@ import MessageIcon from "@mui/icons-material/Message";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { Favorite, Message, Block } from "@mui/icons-material";
-import ShortlistButton from "./ShortListProfiles"
+import ShortlistButton from "./ProfileChatButton"
 import ProfileChatButton from "./ProfileChatButton";
 
 
