@@ -195,7 +195,7 @@ const ChatWindow = ({ otherUserId, otherUserName, onClose }) => {
 
     //     initChat();
     // }, [otherUserId, otherUserName, currentUser, createChat]);
-    
+
 
     // In ChatWindow.jsx, modify the initialization useEffect:
 
@@ -256,7 +256,7 @@ useEffect(() => {
 
     // Show loading state during initialization
     if (isInitializing) {
-        return <div className="chat-loading">Initializing chat...</div>;
+        return <div className="chat-loading">Initializing chat...please reload page if chat not appear</div>;
     }
 
     // Show error if no chat could be created

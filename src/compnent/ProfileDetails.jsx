@@ -5,7 +5,7 @@ import MessageIcon from "@mui/icons-material/Message";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { Favorite, Message, Block } from "@mui/icons-material";
-import ShortlistButton from "./ProfileChatButton"
+import ShortlistButton from "./ShortListProfiles"
 import ProfileChatButton from "./ProfileChatButton";
 
 
@@ -20,7 +20,7 @@ const ProfileDetail = () => {
                 const response = await axios.get(`https://backend-for-mangalastak.onrender.com/api/users/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                console.log("Fetched Profile:", response.data);
+                // console.log("Fetched Profile:", response.data);
                 setProfile(response.data);
             } catch (error) {
                 console.error("Error fetching profile:", error);
