@@ -42,36 +42,32 @@ const ChatWindow = ({ otherUserId, otherUserName, onClose }) => {
     // }, [otherUserId, otherUserName, currentUser, createChat]); // Fixed dependency array
 
 
-    // Initialize chat when component mounts
+  // Inside your ChatWindow component, modify the useEffect for initialization:
+
 useEffect(() => {
     const initChat = async () => {
-        if (!otherUserId || !currentUser) {
-            console.warn("Chat cannot be initialized yet. Waiting for required data...");
-            return;
-        }
-
-        try {
-            setIsInitializing(true);
-            const createdChatId = await createChat(otherUserId, otherUserName);
-
-            if (!createdChatId) {
-                console.error("Failed to create or fetch chat. No chat ID returned.");
-                return;
+        if (otherUserId && currentUser) {
+            try {
+                setIsInitializing(true);
+                const createdChatId = await createChat(otherUserId, otherUserName);
+                setChatId(createdChatId);
+                
+                // Add a small delay to ensure state updates properly
+                setTimeout(() => {
+                    setIsInitializing(false);
+                }, 500);
+            } catch (error) {
+                console.error("Error initializing chat:", error);
+                setIsInitializing(false);
             }
-
-            setChatId(createdChatId);
-        } catch (error) {
-            console.error("Error initializing chat:", error);
-        } finally {
+        } else {
+            // Make sure we're not stuck in initializing if there's missing data
             setIsInitializing(false);
         }
     };
 
-    // Run only when both `otherUserId` and `currentUser` are available
-    if (otherUserId && currentUser) {
-        initChat();
-    }
-}, [otherUserId, otherUserName, currentUser, createChat]); // Fixed dependency array
+    initChat();
+}, [otherUserId, otherUserName, currentUser, createChat]);
 
 
 
@@ -95,13 +91,13 @@ useEffect(() => {
         return <div className="chat-loading">Initializing chat...</div>;
     }
 
-    // Show error if no chat could be created
-    if (!activeChat && !isInitializing) {
-        return <div className="chat-error">
-            <p>Couldn't load the chat. Please try again.</p>
-            <button onClick={onClose}>Close</button>
-        </div>;
-    }
+// Replace this check
+if (!isInitializing && (!activeChat || !chatId)) {
+    return <div className="chat-error">
+        <p>Couldn't load the chat. Please try again.</p>
+        <button onClick={onClose}>Close</button>
+    </div>;
+}
 
     return (
         <div className="chat-window">
