@@ -370,7 +370,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { 
     Container, 
     Card, 
@@ -387,12 +387,14 @@ import {
     Dialog, 
     DialogTitle, 
     DialogContent, 
-    DialogActions
+    DialogActions,
+    IconButton
 } from "@mui/material";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
 import PartnerPreferencesForm from "../compnent/PartnerPreferences";
+import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -403,6 +405,9 @@ const Dashboard = () => {
     const [openDelete, setOpenDelete] = useState(false);
     const [shortlistedProfiles, setShortlistedProfiles] = useState([]);
     const [totalShortlisted, setTotalShortlisted] = useState(0);
+    const [imageFile, setImageFile] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
+    const fileInputRef = useRef(null);
 
     // do not touch this 
     useEffect(() => {
@@ -443,6 +448,13 @@ const Dashboard = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUser(res.data);
+                // Initialize updatedData with empty values
+                setUpdatedData({
+                    fullName: res.data.fullName || "",
+                    phone: res.data.phone || "",
+                    occupation: res.data.occupation || "",
+                    bio: res.data.bio || ""
+                });
             } catch {
                 toast.error("Failed to load user profile");
                 navigate("/login");
@@ -471,35 +483,92 @@ const Dashboard = () => {
         fetchShortlistedProfiles();
     }, []);
 
-    const handleEdit = () => setEditMode(true);
+    const handleEdit = () => {
+        setEditMode(true);
+        // Reset the updatedData when entering edit mode
+        setUpdatedData({
+            fullName: user.fullName || "",
+            phone: user.phone || "",
+            occupation: user.occupation || "",
+            bio: user.bio || ""
+        });
+        setPreviewImage(user.profilePicture);
+    };
+
     const handleSave = async () => {
         const token = localStorage.getItem("authToken");
+        
         try {
-            const { data } = await axios.put("https://backend-for-mangalastak.onrender.com/api/auth/update", updatedData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            let finalData = {...updatedData};
+            
+            // Handle image upload first if there's a new image
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append("profilePicture", imageFile);
+                
+                const imageUploadResponse = await axios.post(
+                    "https://backend-for-mangalastak.onrender.com/api/auth/upload-profile-picture",
+                    formData,
+                    {
+                        headers: { 
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "multipart/form-data"
+                        }
+                    }
+                );
+                
+                // Add the profile picture URL to the updated data
+                if (imageUploadResponse.data.profilePictureUrl) {
+                    finalData.profilePicture = imageUploadResponse.data.profilePictureUrl;
+                }
+            }
+            
+            // Then update user data
+            const { data } = await axios.put(
+                "https://backend-for-mangalastak.onrender.com/api/auth/update", 
+                finalData, 
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            
             setUser(data);
             setEditMode(false);
+            setImageFile(null);
             toast.success("Profile updated successfully!");
-        } catch {
+        } catch (error) {
+            console.error("Update error:", error);
             toast.error("Failed to update profile");
+        }
+    };
+
+    const handleImageChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImageFile(file);
+            
+            // Create a preview URL
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
     const handleDelete = async () => {
         const token = localStorage.getItem("authToken");
-        if (window.confirm("Are you sure you want to delete your account?")) {
-            try {
-                await axios.delete("https://backend-for-mangalastak.onrender.com/api/auth/delete", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                toast.success("Account deleted successfully");
-                localStorage.removeItem("authToken");
-                navigate("/register");
-            } catch {
-                toast.error("Failed to delete account");
-            }
+        try {
+            await axios.delete("https://backend-for-mangalastak.onrender.com/api/auth/delete", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success("Account deleted successfully");
+            localStorage.removeItem("authToken");
+            navigate("/register");
+        } catch {
+            toast.error("Failed to delete account");
         }
+        setOpenDelete(false);
     };
 
     const handleLogout = () => {
@@ -511,6 +580,15 @@ const Dashboard = () => {
     const handleCancel = () => {
         setEditMode(false);
         setUpdatedData({});
+        setImageFile(null);
+        setPreviewImage(null);
+    };
+
+    const handleInputChange = (field, value) => {
+        setUpdatedData(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     if (loading) {
@@ -554,17 +632,46 @@ const Dashboard = () => {
                         />
                         
                         <Box sx={{ p: 4, textAlign: "center", position: 'relative' }}>
-                            <Avatar 
-                                src={user.profilePicture} 
-                                sx={{ 
-                                    width: 150, 
-                                    height: 150, 
-                                    margin: "auto", 
-                                    mb: 3,
-                                    border: "4px solid #ff6b81",
-                                    boxShadow: '0 4px 20px rgba(255, 107, 129, 0.3)'
-                                }} 
-                            />
+                            {/* Profile picture with upload option */}
+                            <Box sx={{ position: 'relative', display: 'inline-block', mb: 3 }}>
+                                <Avatar 
+                                    src={editMode ? previewImage : user.profilePicture}
+                                    sx={{ 
+                                        width: 150, 
+                                        height: 150, 
+                                        margin: "auto",
+                                        border: "4px solid #ff6b81",
+                                        boxShadow: '0 4px 20px rgba(255, 107, 129, 0.3)'
+                                    }} 
+                                />
+                                
+                                {editMode && (
+                                    <>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <IconButton
+                                            onClick={() => fileInputRef.current.click()}
+                                            sx={{
+                                                position: 'absolute',
+                                                bottom: 0,
+                                                right: 0,
+                                                backgroundColor: '#ff6b81',
+                                                color: 'white',
+                                                '&:hover': {
+                                                    backgroundColor: '#ff8e53',
+                                                }
+                                            }}
+                                        >
+                                            <AddAPhotoIcon />
+                                        </IconButton>
+                                    </>
+                                )}
+                            </Box>
                             
                             {editMode ? (
                                 <Box sx={{ mt: 2 }}>
@@ -589,8 +696,8 @@ const Dashboard = () => {
                                             <TextField 
                                                 fullWidth 
                                                 label="Full Name" 
-                                                value={updatedData.fullName || user.fullName} 
-                                                onChange={(e) => setUpdatedData({ ...updatedData, fullName: e.target.value })} 
+                                                value={updatedData.fullName} 
+                                                onChange={(e) => handleInputChange('fullName', e.target.value)} 
                                                 sx={{ 
                                                     '& .MuiOutlinedInput-root': {
                                                         borderRadius: 2,
@@ -644,48 +751,45 @@ const Dashboard = () => {
                                                 />
                                             </Grid>
                                         )}
-                                        {user.phone && (
-                                            <Grid item xs={12} sm={6}>
-                                                <TextField 
-                                                    fullWidth 
-                                                    label="Phone" 
-                                                    value={user.phone} 
-                                                    onChange={(e) => setUpdatedData({ ...updatedData, phone: e.target.value })}
-                                                    sx={{ 
-                                                        '& .MuiOutlinedInput-root': {
-                                                            borderRadius: 2,
-                                                            '&:hover fieldset': {
-                                                                borderColor: '#ff6b81',
-                                                            },
-                                                        }
-                                                    }}
-                                                />
-                                            </Grid>
-                                        )}
-                                        {user.occupation && (
-                                            <Grid item xs={12} sm={6}>
-                                                <TextField 
-                                                    fullWidth 
-                                                    label="Occupation" 
-                                                    value={updatedData.occupation || user.occupation} 
-                                                    onChange={(e) => setUpdatedData({ ...updatedData, occupation: e.target.value })}
-                                                    sx={{ 
-                                                        '& .MuiOutlinedInput-root': {
-                                                            borderRadius: 2,
-                                                            '&:hover fieldset': {
-                                                                borderColor: '#ff6b81',
-                                                            },
-                                                        }
-                                                    }}
-                                                />
-                                            </Grid>
-                                        )}
+                                        {/* Fixed phone number update */}
+                                        <Grid item xs={12} sm={6}>
+                                            <TextField 
+                                                fullWidth 
+                                                label="Phone" 
+                                                value={updatedData.phone}
+                                                onChange={(e) => handleInputChange('phone', e.target.value)}
+                                                sx={{ 
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderRadius: 2,
+                                                        '&:hover fieldset': {
+                                                            borderColor: '#ff6b81',
+                                                        },
+                                                    }
+                                                }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={6}>
+                                            <TextField 
+                                                fullWidth 
+                                                label="Occupation" 
+                                                value={updatedData.occupation}
+                                                onChange={(e) => handleInputChange('occupation', e.target.value)}
+                                                sx={{ 
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderRadius: 2,
+                                                        '&:hover fieldset': {
+                                                            borderColor: '#ff6b81',
+                                                        },
+                                                    }
+                                                }}
+                                            />
+                                        </Grid>
                                         <Grid item xs={12}>
                                             <TextField 
                                                 fullWidth 
                                                 label="Bio" 
-                                                value={updatedData.bio || user.bio || ''} 
-                                                onChange={(e) => setUpdatedData({ ...updatedData, bio: e.target.value })} 
+                                                value={updatedData.bio}
+                                                onChange={(e) => handleInputChange('bio', e.target.value)}
                                                 multiline 
                                                 rows={4}
                                                 sx={{ 
