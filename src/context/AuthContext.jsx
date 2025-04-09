@@ -1,10 +1,12 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useContext } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // add this at the top
 
     const fetchUser = async () => {
         const token = localStorage.getItem("authToken");
@@ -15,6 +17,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem("authToken");
             localStorage.removeItem("authTokenExpiry");
             setUser(null);
+            setLoading(false); // set here
             return;
         }
 
@@ -28,14 +31,20 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
             localStorage.removeItem("authToken");
             localStorage.removeItem("authTokenExpiry");
+        } finally {
+            setLoading(false); // set loading false after done
         }
     };
 
-    useEffect(() => {
+     useEffect(() => {
         fetchUser();
     }, []);
 
-    return <AuthContext.Provider value={{ currentUser, setUser, fetchUser }}>{children}</AuthContext.Provider>;
+    useEffect(() => {
+    }, [loading, currentUser]);
+
+    return <AuthContext.Provider value={{ currentUser, setUser, fetchUser, loading }}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;
+export const useAuth = () => useContext(AuthContext);
