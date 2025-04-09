@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
-import { Container, Typography, Box, Chip, Button, Divider, IconButton, TextField, InputAdornment } from '@mui/material';
+import { Container, Typography, Box, Chip, Button, Divider, IconButton } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Search, CheckCircle, X, ChevronLeft, Clock, AlertTriangle } from 'lucide-react';
+import { Bell, CheckCircle, X, ChevronLeft, Clock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext'; // Import the hook
 
 const NotificationSystem = () => {
   const [filter, setFilter] = useState('all'); // all, unread, read
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   
   // Get data from context
-  const { notifications, markNotificationAsRead, navigateToChat, navigateToProfile, removeNotification } = useNotifications();
+  const { notifications, markNotificationAsRead, navigateToProfile, removeNotification } = useNotifications();
   
-  // console.log("Notifications received in NotificationSystem:", notifications);
-
   // Use useMemo for filtered notifications
   const filteredNotifications = React.useMemo(() => {
     let result = [...notifications];
@@ -26,16 +23,8 @@ const NotificationSystem = () => {
       result = result.filter(notification => notification.read);
     }
     
-    // Apply search
-    if (searchTerm) {
-      result = result.filter(notification => 
-        (notification.content && notification.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (notification.senderName && notification.senderName.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-    
     return result;
-  }, [notifications, filter, searchTerm]);
+  }, [notifications, filter]);
 
   // Format time for display
   const formatTime = (date) => {
@@ -110,46 +99,13 @@ const NotificationSystem = () => {
           </Typography>
         </Box>
 
-        {/* Rest of your notification system UI... */}
-        {/* Search and Filter Bar */}
+        {/* Filter Bar - Search bar removed */}
         <Box sx={{ 
           display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' }, 
-          alignItems: { xs: 'stretch', sm: 'center' }, 
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           mb: 3,
           gap: 2
         }}>
-          <TextField
-            placeholder="Search notifications..."
-            variant="outlined"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            fullWidth
-            sx={{ 
-              maxWidth: { sm: '60%' },
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                backgroundColor: 'white',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.08)'
-              }
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={20} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm ? (
-                <InputAdornment position="end">
-                  <IconButton size="small" onClick={() => setSearchTerm('')}>
-                    <X size={16} />
-                  </IconButton>
-                </InputAdornment>
-              ) : null
-            }}
-          />
-
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
             <Chip 
               icon={<Bell size={16} />} 
@@ -359,14 +315,14 @@ const NotificationSystem = () => {
                         {notification.content || 'New notification'}
                       </Typography>
                       
-                      {/* Action button for interactive notifications */}
+                      {/* Modified: Reply button now redirects to profile */}
                       {notification.type === 'message' && (
                         <Button 
                           size="small" 
                           variant="outlined" 
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigateToChat(notification.senderId);
+                            navigateToProfile(notification.senderId);
                           }}
                           sx={{ 
                             mt: 1.5, 
@@ -380,7 +336,7 @@ const NotificationSystem = () => {
                             }
                           }}
                         >
-                          Reply
+                          Profile
                         </Button>
                       )}
                     </Box>
@@ -390,8 +346,7 @@ const NotificationSystem = () => {
                       size="small"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // markNotificationAsRead(notification.id);
-                         removeNotification(notification.id);
+                        removeNotification(notification.id);
                       }}
                       sx={{ ml: 1, bgcolor: 'rgba(0,0,0,0.03)', '&:hover': { bgcolor: 'rgba(0,0,0,0.08)' } }}
                     >
@@ -415,9 +370,7 @@ const NotificationSystem = () => {
                   <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
                     {filter !== 'all' 
                       ? `You don't have any ${filter} notifications at the moment` 
-                      : searchTerm 
-                        ? `No results found for "${searchTerm}"` 
-                        : "You're all caught up! We'll notify you when something happens"}
+                      : "You're all caught up! We'll notify you when something happens"}
                   </Typography>
                 </Box>
               </motion.div>
